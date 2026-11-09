@@ -2,8 +2,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const countryInput = document.getElementById("country");
   const result = document.getElementById("result");
 
-  document.getElementById("lookup").addEventListener("click", function () {
-    const url = "world.php?country=" + encodeURIComponent(countryInput.value);
+  function search(lookup) {
+    // encodeURIComponent keeps spaces and symbols in the search valid in a URL.
+    let url = "world.php?country=" + encodeURIComponent(countryInput.value);
+    if (lookup) {
+      url += "&lookup=" + lookup;
+    }
 
     fetch(url)
       .then(function (response) {
@@ -18,5 +22,13 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(function (error) {
         result.textContent = "Something went wrong: " + error.message;
       });
+  }
+
+  document.getElementById("lookup").addEventListener("click", function () {
+    search();
+  });
+
+  document.getElementById("lookup-cities").addEventListener("click", function () {
+    search("cities");
   });
 });

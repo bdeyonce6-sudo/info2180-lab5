@@ -8,9 +8,21 @@ $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $p
 
 // An empty search becomes LIKE '%%', which matches every country.
 $country = trim($_GET['country'] ?? '');
+$lookup = $_GET['lookup'] ?? '';
+
+if ($lookup === 'cities') {
+    $stmt = $conn->prepare(
+        "SELECT cities.name, cities.district, cities.population
+         FROM cities
+         JOIN countries ON cities.country_code = countries.code
+         WHERE countries.name LIKE :country
+         ORDER BY cities.population DESC"
+    );
+} else {
+    $stmt = $conn->prepare("SELECT * FROM countries WHERE name LIKE :country");
+}
 
 // The search text is bound as a parameter so it can't change the SQL.
-$stmt = $conn->prepare("SELECT * FROM countries WHERE name LIKE :country");
 $stmt->execute(['country' => "%$country%"]);
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -19,6 +31,26 @@ function e($value) {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 ?>
+<?php if ($lookup === 'cities'): ?>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>District</th>
+      <th>Population</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($results as $row): ?>
+    <tr>
+      <td><?= e($row['name']); ?></td>
+      <td><?= e($row['district']); ?></td>
+      <td><?= e($row['population']); ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+<?php else: ?>
 <table>
   <thead>
     <tr>
@@ -39,3 +71,4 @@ function e($value) {
     <?php endforeach; ?>
   </tbody>
 </table>
+<?php endif; ?>
